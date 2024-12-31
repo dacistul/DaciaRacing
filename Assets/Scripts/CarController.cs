@@ -37,7 +37,7 @@ public class CarController : MonoBehaviour {
 
 	public float currentRpm=0;
 	private float commandedTorque=0;
-	private float inputRpm=0;
+	public float inputRpm=0;
 	public float clutchDebug=0;
 	private float transmissionControl()
 	{
