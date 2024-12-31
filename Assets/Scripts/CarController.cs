@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 [System.Serializable]
 public class ProportionedWheel{
@@ -15,7 +16,7 @@ public class CarController : MonoBehaviour {
 	public float engineBraking = 10f;
 	public float breakingForce = 600f;
 	public float maxTurnAngle = 25f;
-
+	public float clutchK=1500f;
 	private float currentAcceleration = 0f;
 	private float currentBreakforce = 0f;
 	private float currentTurnAngle = 0f;
@@ -36,40 +37,58 @@ public class CarController : MonoBehaviour {
 	public int currentGear;
 
 	public float currentRpm=0;
-	private float commandedTorque=0;
+	public float commandedTorque=0;
 	public float inputRpm=0;
 	public float clutchDebug=0;
+	public float maxTorqueDebug=0;
+
+	private int changeTimer=0;
 	private float transmissionControl()
 	{
+		changeTimer++;
+		var changeTreshold=50;
+		//if(changeTimer>100){
 		if(commandedTorque>0.7f*acceleration &&
 			currentGear < gearRatios.Length-1 &&
 			currentRpm > 6000
 		) {
+			if(changeTimer>changeTreshold && clutchDebug>0.98f){
 			currentGear++;
+			changeTimer=0;
+			}
 		}else
 		if(commandedTorque>0.7f*acceleration &&
 			currentGear>0 &&
 			getEngineSpeed(currentGear-1) < 5000)
 		{
-			currentGear--;
+			if(changeTimer>changeTreshold){
+				currentGear--;
+				changeTimer=0;
+			}
 		} else if(commandedTorque>0.1f*acceleration &&
 					commandedTorque < 0.5f &&
 					currentGear < gearRatios.Length-1 &&
 					getEngineSpeed(currentGear+1) > 1800) {
-			currentGear++; // only driven by grandma
+						
+			if(changeTimer>changeTreshold){
+			currentGear++;
+			changeTimer=0;
+			} // only driven by grandma
 		} else if(commandedTorque<0.05f*acceleration &&
 					currentRpm < idleRpm &&
 					currentGear> 0) {
-			currentGear--;
-		}else
-		if( currentGear==0 && (commandedTorque<0.05f ||currentRpm<idleRpm))
+			if(changeTimer>changeTreshold){
+				currentGear--;
+				changeTimer=0;
+			}
+		}//else
+		/*if( currentGear==0 && (commandedTorque<0.05f ||currentRpm<idleRpm))
 		{
 			return 0.0f;
-		}
+		}*/
 		if(currentRpm>1500)
-			return clutchDebug*0.98f+0.02f;
-		else
-			return clutchDebug*0.98f;
+			return clutchDebug*0.95f+0.05f;
+		return clutchDebug*0.95f;
 
 	}
 
@@ -82,22 +101,22 @@ public class CarController : MonoBehaviour {
 	}
 	private float maxTorque(float rpm)
 	{
-		float maxTorque=0;
+		float maxTorque=0.1f;
 
 		if(rpm>500 && rpm<2000)
 		{
-			maxTorque = map(500,2000,40,80);
+			maxTorque = map(500,2000,0.25f,0.5f);
 		} else if( rpm<2800) {
-			maxTorque = map(2000,2800,80,165);
+			maxTorque = map(2000,2800,0.5f,1.03f);
 		} else if( rpm<4000) {
-			maxTorque = map(2800,4000,165,160);
+			maxTorque = map(2800,4000,1.03f,1.0f);
 		} else if( rpm<6200) {
-			maxTorque = map(4000,6200,160,120);
+			maxTorque = map(4000,6200,1.0f,0.75f);
 		} else {
-			maxTorque = map(6200,redlineRpm,120,0);
+			maxTorque = map(6200,redlineRpm,0.75f,0.0f);
 		}
 
-		return maxTorque;
+		return maxTorque*acceleration;
 	}
 	private float getEngineSpeed() {
 		return getEngineSpeed(currentGear);
@@ -118,34 +137,35 @@ public class CarController : MonoBehaviour {
 				wheelSpeed+=wheel.wheel.rpm;
 		}
 
-		return wheelSpeed/getRatio(gear);
+		return wheelSpeed*getRatio(gear);
 	}
 	private float oldinputRpm=0.0f;
 	private float drivetrain()
 	{
 		oldinputRpm=inputRpm;
 		inputRpm = getEngineSpeed();
-		var clutch = transmissionControl();
-		clutchDebug = clutch;
-
-		var enT = Mathf.Min(maxTorque(),commandedTorque);
-
+		clutchDebug = transmissionControl();
+		maxTorqueDebug = maxTorque();
+		var enT = Mathf.Min(maxTorqueDebug,commandedTorque);
 		float miu = 0.4f;
-		float clampingForce = clutch*2000.0f;
+		float clampingForce = clutchDebug*clutchK; // TODO change to lower value
 		float ro=0.15f,ri=0.1f;
 		float maxClutchTorque =
 			(ro*ro*ro-ri*ri*ri)/(ro*ro-ri*ri)*
 			miu * clampingForce;
 
-
-		var diffTorque = enT-maxClutchTorque; //124.93 kgm^2
-
 		float transmissionTorque=0;
-		if(currentRpm>inputRpm*1.01f){
-			transmissionTorque=maxClutchTorque;
-		}
-		currentRpm = currentRpm+diffTorque/engineInertia*0.006f*60;
+		transmissionTorque=Math.Min(maxClutchTorque,enT);
 
+		if(currentRpm<800)
+			enT+=5f;
+		else
+			enT-=5f;
+		var diffTorque = enT-transmissionTorque; //124.93 kgm^2
+		currentRpm = currentRpm*(1-clutchDebug)+inputRpm*clutchDebug+diffTorque/engineInertia*0.006f*60*10;
+		//currentRpm = inputRpm+diffTorque/engineInertia*0.006f*60*10;
+		if(currentRpm<0)
+			currentRpm=0;
 
 		//Debug.Log("diffTorque" + diffTorque);
 
@@ -157,7 +177,7 @@ public class CarController : MonoBehaviour {
 	private void FixedUpdate() {
 
 		currentAcceleration=drivetrain();
-		currentAcceleration=commandedTorque*16;
+		//currentAcceleration=commandedTorque*16;
 
 		// Accelerating
 		foreach(var wheel in accelerationWheels) {

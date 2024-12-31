@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
+[System.Serializable]
 public class AxisSmoothing : InputProcessor<float>
 {
     [RuntimeInitializeOnLoadMethod]
@@ -20,7 +20,6 @@ public class AxisSmoothing : InputProcessor<float>
     private float currentValue=0;
     public override float Process(float value, InputControl control)
     {
-        Debug.Log("Henlo!");
 
         if(SnapOnInversion && value!=0.0f && value/currentValue<0.0f){
             currentValue=value;

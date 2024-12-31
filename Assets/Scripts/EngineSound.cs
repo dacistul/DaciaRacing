@@ -17,6 +17,6 @@ public class EngineSound : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        audio.pitch = car.inputRpm/referenceRPM;
+        audio.pitch = car.currentRpm/referenceRPM;
     }
 }

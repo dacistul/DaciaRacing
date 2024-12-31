@@ -158,7 +158,7 @@ public class CarAI : MonoBehaviour
         if (NavMesh.SamplePosition(destination.position, out NavMeshHit hit, 150, NavMeshLayerBite) &&
             NavMesh.CalculatePath(sourcePostion, hit.position, NavMeshLayerBite, path))
         {
-            if (path.corners.Length > 1&& CheckForAngle(path.corners[1], sourcePostion, direction))
+            if (path.corners.Length > 1 && CheckForAngle(path.corners[1], sourcePostion, direction))
             {
                 addBack(path.corners);
                 debug("Custom Path generated successfully", false);

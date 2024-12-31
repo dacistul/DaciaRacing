@@ -1,10 +1,18 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.InputSystem;
 public class PlayerCar : MonoBehaviour
 {
     public bool arcade = true;
 	private Rigidbody rig;
     private CarController controller;
+
+
+	public AxisSmoothing steering;
+
+	//public Transform speedGaugeTransform;
+	public TextMeshProUGUI speedGauge;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -17,11 +25,13 @@ public class PlayerCar : MonoBehaviour
     void Update()
     {
 
+        controller.steer(steering.Process(rawSteering,null));
+		speedGauge.SetText((int)(rig.linearVelocity.magnitude*3.6f) + " km/h");
     }
 
+	private float rawSteering;
     public void OnSteering(InputAction.CallbackContext context) {
-        var val = context.ReadValue<float>();
-        controller.steer(val);
+        rawSteering = context.ReadValue<float>();
     }
     public void OnHandBrake(InputAction.CallbackContext context) {
         var val = context.ReadValue<float>();
@@ -56,4 +66,6 @@ public class PlayerCar : MonoBehaviour
 
 		}
     }
+
+	
 }

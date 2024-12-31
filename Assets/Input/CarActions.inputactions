@@ -45,12 +45,34 @@
             "bindings": [
                 {
                     "name": "",
+                    "id": "043a0197-46aa-4d81-9bfa-5d0b7f1b6af9",
+                    "path": "<HID::Generic   USB  Joystick  >/button8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Accelerator",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "727e3801-e02e-40b2-9196-20208f5abb99",
                     "path": "<Keyboard>/w",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Accelerator",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "81ca7539-d2b4-405f-994b-c54fd73c25b1",
+                    "path": "<HID::Generic   USB  Joystick  >/button6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Brake",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -73,6 +95,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Hand Brake",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "35cb45a1-0aa8-4a25-b8cf-cb0987e97f76",
+                    "path": "<Joystick>/stick/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Steering",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
